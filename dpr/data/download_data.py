@@ -456,7 +456,8 @@ def download_resource(
         )
     )
 
-    wget.download(s3_url, out=local_file)
+    if not os.path.exists(local_file):
+        wget.download(s3_url, out=local_file)
 
     logger.info("Downloaded to %s", local_file)
 
@@ -465,7 +466,7 @@ def download_resource(
         unpack(local_file, uncompressed_file)
         os.remove(local_file)
         local_file = uncompressed_file
-    return save_root, local_file
+    return save_root, None
 
 
 def download_file(s3_url: str, out_dir: str, file_name: str):

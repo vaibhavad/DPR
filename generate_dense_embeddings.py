@@ -160,7 +160,7 @@ def main(cfg: DictConfig):
 
     data = gen_ctx_vectors(cfg, shard_passages, encoder, tensorizer, True)
 
-    file = cfg.out_file + "_" + str(cfg.shard_id)
+    file = cfg.out_file + "_" + str(cfg.shard_id) + ".pkl"
     pathlib.Path(os.path.dirname(file)).mkdir(parents=True, exist_ok=True)
     logger.info("Writing results to %s" % file)
     with open(file, mode="wb") as f:
