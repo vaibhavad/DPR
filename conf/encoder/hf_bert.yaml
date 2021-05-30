@@ -4,10 +4,10 @@
 encoder_model_type: hf_bert
 
 # HuggingFace's config name for model initialization
-pretrained_model_cfg: bert-base-uncased
+pretrained_model_cfg: ${env:SCRATCH}/DPR-data/hf-models/bert-base-uncased
 
 # Some encoders need to be initialized from a file
-pretrained_file:
+pretrained_file: ${env:SCRATCH}/DPR-data/hf-models/bert-base-uncased/bert-base-uncased-pytorch_model.bin
 
 # Extra linear layer on top of standard bert/roberta encoder
 projection_dim: 0

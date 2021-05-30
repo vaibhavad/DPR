@@ -2,7 +2,7 @@
 
 nq_train:
   _target_: dpr.data.biencoder_data.JsonQADataset
-  file: data.retriever.nq-train
+  file: ${env:SCRATCH}/DPR-data/data/retriever/nq-train.json
 
 nq_train_hn1:
   _target_: dpr.data.biencoder_data.JsonQADataset
@@ -10,7 +10,7 @@ nq_train_hn1:
 
 nq_dev:
   _target_: dpr.data.biencoder_data.JsonQADataset
-  file: data.retriever.nq-dev
+  file: ${env:SCRATCH}/DPR-data/data/retriever/nq-dev.json
 
 trivia_train:
   _target_: dpr.data.biencoder_data.JsonQADataset

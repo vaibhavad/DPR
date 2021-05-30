@@ -1,8 +1,16 @@
 # @package _group_
 
+ocoqa_small:
+  _target_: dpr.data.retriever_data.CsvQASrc
+  file: ${env:SCRATCH}/DPR-data/data/retriever/qas/ocoqa_dpr_format_small.csv
+
+ocoqa:
+  _target_: dpr.data.retriever_data.CsvQASrc
+  file: ${env:SCRATCH}/DPR-data/data/retriever/qas/ocoqa_dpr_format.csv
+
 nq_test:
   _target_: dpr.data.retriever_data.CsvQASrc
-  file: data.retriever.qas.nq-test
+  file: ${env:SCRATCH}/DPR-data/data/retriever/qas/nq-test.csv
 
 nq_train:
   _target_: dpr.data.retriever_data.CsvQASrc
@@ -10,7 +18,7 @@ nq_train:
 
 nq_dev:
   _target_: dpr.data.retriever_data.CsvQASrc
-  file: data.retriever.qas.nq-dev
+  file: ${env:SCRATCH}/DPR-data/data/retriever/qas/nq-dev.csv
 
 trivia_test:
   _target_: dpr.data.retriever_data.CsvQASrc
