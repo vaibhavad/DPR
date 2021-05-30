@@ -405,20 +405,24 @@ def main(cfg: DictConfig):
             retriever.index.serialize(index_path)
 
     # get top k results
+    logger.info("Getting top IDs and scores") 
     top_ids_and_scores = retriever.get_top_docs(questions_tensor.numpy(), cfg.n_docs)
+    logger.info("Top IDs and scores calculated") 
 
     # we no longer need the index
     retriever = None
 
     all_passages = {}
+    logger.info("Loading data to all passages") 
     for ctx_src in ctx_sources:
         ctx_src.load_data_to(all_passages)
+    logger.info("Data loaded to all passages") 
 
     if len(all_passages) == 0:
         raise RuntimeError(
             "No passages data found. Please specify ctx_file param properly."
         )
-
+    logger.info("Validating")
     if cfg.validate_as_tables:
         questions_doc_hits = validate_tables(
             all_passages,
@@ -435,7 +439,9 @@ def main(cfg: DictConfig):
             cfg.validation_workers,
             cfg.match,
         )
+    logger.info("Validation done")
 
+    logger.info("Saving results")
     if cfg.out_file:
         save_results(
             all_passages,
@@ -445,6 +451,7 @@ def main(cfg: DictConfig):
             questions_doc_hits,
             cfg.out_file,
         )
+    logger.info("Results saved")
 
     if cfg.kilt_out_file:
         kilt_ctx = next(
