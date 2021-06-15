@@ -19,6 +19,6 @@ export TRANSFORMERS_CACHE=/miniscratch/vaibhav.adlakha/hf-models
 HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 python -m torch.distributed.launch --nproc_per_node=8 \
 train_dense_encoder.py \
-train_datasets=[ocoqa_train] \
+train_datasets=[ocoqa_train_t5_qrecc] \
 dev_datasets=[nq_dev] \
 train=biencoder_nq output_dir=$SCRATCH/DPR-data/new-checkpoints/ocoqa/retriever

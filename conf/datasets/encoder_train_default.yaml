@@ -4,6 +4,10 @@ nq_train:
   _target_: dpr.data.biencoder_data.JsonQADataset
   file: ${env:SCRATCH}/DPR-data/data/retriever/nq-train.json
 
+ocoqa_train_t5_qrecc:
+  _target_: dpr.data.biencoder_data.JsonQADataset
+  file: ${env:SCRATCH}/DPR-data/data/retriever/ocoqa-rewrites-t5-qrecc.json
+
 nq_train_hn1:
   _target_: dpr.data.biencoder_data.JsonQADataset
   file: data.retriever.nq-adv-hn-train

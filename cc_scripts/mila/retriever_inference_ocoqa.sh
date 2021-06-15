@@ -17,13 +17,13 @@ cd $HOME/DPR
 
 export TRANSFORMERS_CACHE=/miniscratch/vaibhav.adlakha/hf-models
 
-# HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
-# python dense_retriever.py \
-# model_file=$SCRATCH/DPR-data/new-checkpoints/ocoqa/retriever/dpr_biencoder.33 \
-# qa_dataset=ocoqa_train_t5_qrecc \
-# ctx_datatsets=[dpr_wiki_ocoqa] \
-# encoded_ctx_files=[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/t5_rewrites_qrecc_trained/wikipedia_passages_*\"] \
-# out_file=$SCRATCH/DPR-data/new-results/ocoqa/t5_rewrites_qrecc_trained/retriever/results.json
+HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+python dense_retriever.py \
+model_file=$SCRATCH/DPR-data/new-checkpoints/ocoqa/retriever/dpr_biencoder.33 \
+qa_dataset=ocoqa_train_t5_qrecc \
+ctx_datatsets=[dpr_wiki_ocoqa] \
+encoded_ctx_files=[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/t5_rewrites_qrecc_trained/wikipedia_passages_*\"] \
+out_file=$SCRATCH/DPR-data/new-results/ocoqa/t5_rewrites_qrecc_trained/retriever/results.json
 
 HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 python dense_retriever.py \
