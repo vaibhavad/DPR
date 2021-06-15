@@ -3,15 +3,18 @@ from glob import glob
 
 CONV_DIR = '/Users/vaibhav/Coqoa/final_conversations'
 
-CANARD_REWRITES_DIR = '/Users/vaibhav/canard/canard_rewrites'
-CANARD_REWRITES_DPR_INPUT_FILE = '/Users/vaibhav/canard/ocoqa_dpr_format.csv'
+REWRITES_DIR = '/Users/vaibhav/canard/rewrites/pg/qrecc_model'
+REWRITES_DPR_INPUT_FILE = '/Users/vaibhav/canard/data/ocoqa_qrecc_dpr_format.csv'
 
-DPR_RETRIEVER_RESULTS = 'results/ocoqa.json'
-DPR_READER_RESULTS = 'results/reader_ocoqa.json'
+DPR_RETRIEVER_RESULTS = 'results/ocoqa_qrecc.json'
+DPR_READER_RESULTS = 'results/reader_ocoqa_qrecc.json'
+
+DPR_OUTPUT_RETRIEVER_DIR = 'results/retriever/pg/qrecc/'
+DPR_OUTPUT_READER_DIR = 'results/reader/pg/qrecc/'
 
 canard_count = 0
 canard_rewrites =  {}
-files = sorted(glob(CANARD_REWRITES_DIR + '/*'))
+files = sorted(glob(REWRITES_DIR + '/*'))
 
 for file in files:
     id = file.split('/')[-1]
@@ -23,7 +26,7 @@ for file in files:
     canard_rewrites[id] = ques
 
 ocoqa_count = 0
-with open(CANARD_REWRITES_DPR_INPUT_FILE, 'r') as f:
+with open(REWRITES_DPR_INPUT_FILE, 'r') as f:
     for line in f:
         ocoqa_count += 1
 
@@ -35,15 +38,15 @@ with open(DPR_RETRIEVER_RESULTS, 'r') as f:
 
 assert len(retriever_results) == canard_count
 
-retriever_results_map = {}
+# retriever_results_map = {}
 
-for result in retriever_results:
-    q = result["question"]
-    if q not in retriever_results_map:
-        retriever_results_map[q] = result["ctxs"]
+# for result in retriever_results:
+#     q = result["question"]
+#     if q not in retriever_results_map:
+#         retriever_results_map[q] = result["ctxs"]
 
-with open('results/retriever/ocoqa.json', 'w') as f:
-    json.dump(retriever_results_map, f)
+# with open('results/retriever/ocoqa.json', 'w') as f:
+#     json.dump(retriever_results_map, f)
 
 i = 0
 for file in files:
@@ -57,7 +60,7 @@ for file in files:
             print()
         conv_retriever_results.append(retriever_results[i]["ctxs"])
         i += 1
-    with open('results/retriever/' + id, 'w') as f:
+    with open(DPR_OUTPUT_RETRIEVER_DIR + id, 'w') as f:
         json.dump(conv_retriever_results, f)
 
 # Readeer results
@@ -73,8 +76,8 @@ for result in reader_results:
     if q not in reader_results_map:
         reader_results_map[q] = result["predictions"]
 
-with open('results/reader/reader_ocoqa.json', 'w') as f:
-    json.dump(reader_results_map, f)
+# with open('results/reader/reader_ocoqa.json', 'w') as f:
+#     json.dump(reader_results_map, f)
 
 i = 0
 for file in files:
@@ -89,5 +92,5 @@ for file in files:
             dpr_q = dpr_q.replace("’", "'")
         conv_reader_results.append(reader_results_map[dpr_q])
         i += 1
-    with open('results/reader/' + id, 'w') as f:
+    with open(DPR_OUTPUT_READER_DIR + id, 'w') as f:
         json.dump(conv_reader_results, f)
