@@ -35,7 +35,7 @@ setup(
         "transformers>=3.0.0,<3.1.0",
         "tqdm>=4.27",
         "wget",
-        "spacy==2.3.1",
+        # "spacy==2.3.1",
         "hydra-core>=1.0.0",
         "omegaconf>=2.0.1",
     ],
