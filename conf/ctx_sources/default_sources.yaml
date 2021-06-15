@@ -4,3 +4,8 @@ dpr_wiki:
   _target_: dpr.data.retriever_data.CsvCtxSrc
   file: ${env:SCRATCH}/DPR-data/data/wikipedia_split/psgs_w100.tsv
   id_prefix: 'wiki:'
+
+dpr_wiki_ocoqa:
+  _target_: dpr.data.retriever_data.CsvCtxSrc
+  file: ${env:SCRATCH}/full_wiki_segments.tsv
+  id_prefix: 'wiki:'
