@@ -31,9 +31,9 @@ def set_cfg_params_from_state(state: dict, cfg: DictConfig):
     if not state:
         return
     cfg.do_lower_case = state["do_lower_case"]
-    cfg.encoder.pretrained_model_cfg = state["pretrained_model_cfg"]
+    # cfg.encoder.pretrained_model_cfg = state["pretrained_model_cfg"]
     cfg.encoder.encoder_model_type = state["encoder_model_type"]
-    cfg.encoder.pretrained_file = state["pretrained_file"]
+    # cfg.encoder.pretrained_file = state["pretrained_file"]
     cfg.encoder.projection_dim = state["projection_dim"]
     cfg.encoder.sequence_length = state["sequence_length"]
 
