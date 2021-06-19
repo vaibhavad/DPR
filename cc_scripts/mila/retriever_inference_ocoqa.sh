@@ -1,34 +1,40 @@
-#!/bin/bash
-#SBATCH --nodes=1
-#SBATCH --gres=gpu:4
-#SBATCH --mem=250G
-#SBATCH --cpus-per-task=40
-#SBATCH --time=6:00:00
-#SBATCH --job-name=dpr_retriever_inference_ocoqa
-#SBATCH --output=/miniscratch/vaibhav.adlakha/DPR-data/new-results/logs/%x-%j.out
-#SBATCH --error=/miniscratch/vaibhav.adlakha/DPR-data/new-results/logs/%x-%j.err
+time=01:00:00
+memory=250G
 
-source activate DPR
-
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/mila/v/vaibhav.adlakha/miniconda3/envs/DPR/lib
 export SCRATCH=/miniscratch/vaibhav.adlakha
 
-cd $HOME/DPR
+model_file=$SCRATCH"/DPR-data/checkpoint/retriever/single/nq/bert-base-encoder.cp"
 
-export TRANSFORMERS_CACHE=/miniscratch/vaibhav.adlakha/hf-models
+for qa_dataset in ocoqa_test_t5_qrecc ocoqa_test_original ocoqa_test_all_history
+do
 
-HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
-python dense_retriever.py \
-model_file=$SCRATCH/DPR-data/new-checkpoints/ocoqa/retriever/dpr_biencoder.33 \
-qa_dataset=ocoqa_train_t5_qrecc \
-ctx_datatsets=[dpr_wiki_ocoqa] \
-encoded_ctx_files=[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/t5_rewrites_qrecc_trained/wikipedia_passages_*\"] \
-out_file=$SCRATCH/DPR-data/new-results/ocoqa/t5_rewrites_qrecc_trained/retriever/results.json
+    ctx_dataset="[dpr_wiki]"
+    encoded_ctx_files="[\"$SCRATCH/DPR-data/data/retriever_results/nq/single/wikipedia_passages_*\"]"
 
-HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
-python dense_retriever.py \
-model_file=$SCRATCH/DPR-data/new-checkpoints/ocoqa/retriever/dpr_biencoder.33 \
-qa_dataset=nq_dev \
-ctx_datatsets=[dpr_wiki_ocoqa] \
-encoded_ctx_files=[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/t5_rewrites_qrecc_trained/wikipedia_passages_*\"] \
-out_file=$SCRATCH/DPR-data/new-results/ocoqa/t5_rewrites_qrecc_trained/retriever/nq_dev_results.json
+    experiment_id=dpr_retriever_inference_${qa_dataset}_dpr_corpus
+    results_file=$SCRATCH"/DPR-data/new-results/ocoqa/inference_only/${qa_dataset}/dpr_corpus/retriever/results.json"
+
+    if [ ! -f ${results_file} ]; then
+        echo ${experiment_id}
+        sbatch --time=${time} --mem=${memory} -J ${experiment_id} --gres=gpu:4 \
+        --nodes=1 --cpus-per-task=40 \
+        -o $SCRATCH"/DPR-data/new-results/logs/%x.%j.out" -e $SCRATCH"/DPR-data/new-results/logs/%x.%j.err" \
+        _retriever_inference_ocoqa.sh \
+        ${model_file} ${qa_dataset} ${ctx_dataset} ${encoded_ctx_files} ${results_file}
+    fi
+
+    ctx_dataset="[dpr_wiki_ocoqa]"
+    encoded_ctx_files="[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/trained_on_nq/wikipedia_passages_*\"]"
+
+    experiment_id=dpr_retriever_inference_${qa_dataset}_ocoqa_corpus
+    results_file=$SCRATCH"/DPR-data/new-results/ocoqa/inference_only/${qa_dataset}/ocoqa_corpus/retriever/results.json"
+
+    if [ ! -f ${results_file} ]; then
+        echo ${experiment_id}
+        sbatch --time=${time} --mem=${memory} -J ${experiment_id} --gres=gpu:4 \
+        --nodes=1 --cpus-per-task=40 \
+        -o $SCRATCH"/DPR-data/new-results/logs/%x.%j.out" -e $SCRATCH"/DPR-data/new-results/logs/%x.%j.err" \
+        _retriever_inference_ocoqa.sh \
+        ${model_file} ${qa_dataset} ${ctx_dataset} ${encoded_ctx_files} ${results_file}
+    fi
+done
