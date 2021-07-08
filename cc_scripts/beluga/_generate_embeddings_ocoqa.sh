@@ -13,8 +13,8 @@ cd $HOME/DPR
 export TRANSFORMERS_CACHE=/scratch/vaibhav/hf-models
 HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 python generate_dense_embeddings.py \
-model_file=$SCRATCH/DPR-data/new-checkpoints/ocoqa/retriever/dpr_biencoder.33 \
+model_file=$2 \
 ctx_src=dpr_wiki_ocoqa shard_id=$1 \
 num_shards=50 \
-out_file=$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/t5_rewrites_qrecc_trained/wikipedia_passages \
+out_file=$3 \
 batch_size=128

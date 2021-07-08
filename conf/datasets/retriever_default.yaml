@@ -8,13 +8,21 @@ ocoqa:
   _target_: dpr.data.retriever_data.CsvQASrc
   file: ${env:SCRATCH}/DPR-data/data/retriever/qas/ocoqa_dpr_format.csv
 
-ocoqa_test_t5_qrecc:
-  _target_: dpr.data.retriever_data.CsvQASrc
-  file: ${env:SCRATCH}/DPR-data/data/retriever/qas/ocoqa_test_t5_qrecc.csv
-
 ocoqa_train_t5_qrecc:
   _target_: dpr.data.retriever_data.CsvQASrc
   file: ${env:SCRATCH}/DPR-data/data/retriever/qas/ocoqa-rewrites-t5-qrecc.csv
+
+ocoqa_test_t5_qrecc:
+  _target_: dpr.data.retriever_data.CsvQASrc
+  file: ${env:SCRATCH}/DPR-data/data/retriever/qas/ocoqa-rewrites-t5-qrecc-test.csv
+
+ocoqa_train_original:
+  _target_: dpr.data.retriever_data.CsvQASrc
+  file: ${env:SCRATCH}/DPR-data/data/retriever/qas/ocoqa-original.csv
+
+ocoqa_test_original:
+  _target_: dpr.data.retriever_data.CsvQASrc
+  file: ${env:SCRATCH}/DPR-data/data/retriever/qas/ocoqa-original-test.csv
 
 nq_test:
   _target_: dpr.data.retriever_data.CsvQASrc

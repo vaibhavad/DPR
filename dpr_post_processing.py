@@ -3,14 +3,26 @@ from glob import glob
 
 CONV_DIR = '/Users/vaibhav/Coqoa/final_conversations'
 
-REWRITES_DIR = '/Users/vaibhav/canard/rewrites/pg/qrecc_model'
-REWRITES_DPR_INPUT_FILE = '/Users/vaibhav/canard/data/ocoqa_qrecc_dpr_format.csv'
+REWRITES_DIR = '/Users/vaibhav/canard/rewrites/t5/qrecc_model'
+REWRITES_DPR_INPUT_FILE = '/Users/vaibhav/canard/data/ocoqa_test_t5_qrecc.csv'
 
-DPR_RETRIEVER_RESULTS = 'results/ocoqa_qrecc.json'
-DPR_READER_RESULTS = 'results/reader_ocoqa_qrecc.json'
+# REWRITES_DIR = '/Users/vaibhav/canard/rewrites/all_history'
+# REWRITES_DPR_INPUT_FILE = '/Users/vaibhav/canard/data/ocoqa_test_all_history.csv'
 
-DPR_OUTPUT_RETRIEVER_DIR = 'results/retriever/pg/qrecc/'
-DPR_OUTPUT_READER_DIR = 'results/reader/pg/qrecc/'
+# REWRITES_DIR = '/Users/vaibhav/canard/rewrites/original'
+# REWRITES_DPR_INPUT_FILE = '/Users/vaibhav/canard/data/ocoqa_test_original.csv'
+
+# DPR_RETRIEVER_RESULTS = 'results_from_cluster/ocoqa/inference_only/ocoqa_test_original/dpr_corpus/retriever/results.json'
+# DPR_READER_RESULTS = 'results_from_cluster/ocoqa/inference_only/ocoqa_test_original/dpr_corpus/reader/results.json'
+
+DPR_RETRIEVER_RESULTS = 'results_from_cluster/ocoqa/t5_rewrites_qrecc_trained/retriever/ocoqa_test_t5_qrecc_results.json'
+DPR_READER_RESULTS = 'results_from_cluster/ocoqa/t5_rewrites_qrecc_trained/reader/ocoqa_test_t5_qrecc_results.json'
+
+# DPR_OUTPUT_RETRIEVER_DIR = 'results/ocoqa/inference_only/ocoqa_test_original/dpr_corpus/retriever/'
+# DPR_OUTPUT_READER_DIR = 'results/ocoqa/inference_only/ocoqa_test_original/dpr_corpus/reader/'
+
+DPR_OUTPUT_RETRIEVER_DIR = 'results/ocoqa/t5_rewrites_qrecc_trained/retriever/'
+DPR_OUTPUT_READER_DIR = 'results/ocoqa/t5_rewrites_qrecc_trained/reader/'
 
 canard_count = 0
 canard_rewrites =  {}
@@ -53,7 +65,7 @@ for file in files:
     id = file.split('/')[-1]
     conv_retriever_results = []
     for q in canard_rewrites[id]:
-        if q.lower().strip('?').strip() != retriever_results[i]["question"]:
+        if q.lower().strip('?').strip() != retriever_results[i]["question"].lower().strip('?').strip():
             print(i)
             print(q.lower().strip('?').strip())
             print(retriever_results[i]["question"])
@@ -63,7 +75,7 @@ for file in files:
     with open(DPR_OUTPUT_RETRIEVER_DIR + id, 'w') as f:
         json.dump(conv_retriever_results, f)
 
-# Readeer results
+# Reader results
 with open(DPR_READER_RESULTS, 'r') as f:
     reader_results = json.load(f)
 
@@ -72,7 +84,7 @@ assert len(reader_results) == canard_count
 reader_results_map = {}
 
 for result in reader_results:
-    q = result["question"]
+    q = result["question"].lower().strip('?').strip()
     if q not in reader_results_map:
         reader_results_map[q] = result["predictions"]
 
@@ -90,6 +102,7 @@ for file in files:
             print(dpr_q)
             print()
             dpr_q = dpr_q.replace("’", "'")
+            assert dpr_q in reader_results_map
         conv_reader_results.append(reader_results_map[dpr_q])
         i += 1
     with open(DPR_OUTPUT_READER_DIR + id, 'w') as f:

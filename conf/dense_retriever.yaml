@@ -26,7 +26,7 @@ out_file:
 # "regex" or "string"
 match: string
 n_docs: 100
-validation_workers: 16
+validation_workers: 32
 
 # Batch size to generate query embeddings
 batch_size: 128

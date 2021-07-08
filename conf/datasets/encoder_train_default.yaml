@@ -4,9 +4,29 @@ nq_train:
   _target_: dpr.data.biencoder_data.JsonQADataset
   file: ${env:SCRATCH}/DPR-data/data/retriever/nq-train.json
 
-ocoqa_train_t5_qrecc:
+ocoqa_train_rewrites_t5_qrecc:
   _target_: dpr.data.biencoder_data.JsonQADataset
   file: ${env:SCRATCH}/DPR-data/data/retriever/ocoqa-rewrites-t5-qrecc.json
+
+ocoqa_test_rewrites_t5_qrecc:
+  _target_: dpr.data.biencoder_data.JsonQADataset
+  file: ${env:SCRATCH}/DPR-data/data/retriever/ocoqa-rewrites-t5-qrecc-test.json
+
+ocoqa_train_original:
+  _target_: dpr.data.biencoder_data.JsonQADataset
+  file: ${env:SCRATCH}/DPR-data/data/retriever/ocoqa-original.json
+
+ocoqa_test_original:
+  _target_: dpr.data.biencoder_data.JsonQADataset
+  file: ${env:SCRATCH}/DPR-data/data/retriever/ocoqa-original-test.json
+
+ocoqa_train_all_history:
+  _target_: dpr.data.biencoder_data.JsonQADataset
+  file: ${env:SCRATCH}/DPR-data/data/retriever/ocoqa-all-history.json
+
+ocoqa_test_all_history:
+  _target_: dpr.data.biencoder_data.JsonQADataset
+  file: ${env:SCRATCH}/DPR-data/data/retriever/ocoqa-all-history-test.json
 
 nq_train_hn1:
   _target_: dpr.data.biencoder_data.JsonQADataset
