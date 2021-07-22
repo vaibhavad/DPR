@@ -15,9 +15,19 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/vaibhav/miniconda3/envs/DPR/lib
 cd $HOME/DPR
 
 export TRANSFORMERS_CACHE=/scratch/vaibhav/hf-models
-# HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python dense_retriever.py model_file=$SCRATCH/DPR-data/checkpoint/retriever/single/nq/bert-base-encoder.cp qa_dataset=ocoqa_qrecc ctx_datatsets=[dpr_wiki] encoded_ctx_files=[\"$SCRATCH/DPR-data/data/retriever_results/nq/single/wikipedia_passages_*\"] out_file=$SCRATCH/DPR-data/new-results/nq/single/ocoqa_qrecc.json
-# HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python dense_retriever.py model_file=$SCRATCH/DPR-data/checkpoint/retriever/single/nq/bert-base-encoder.cp qa_dataset=ocoqa_t5_canard ctx_datatsets=[dpr_wiki] encoded_ctx_files=[\"$SCRATCH/DPR-data/data/retriever_results/nq/single/wikipedia_passages_*\"] out_file=$SCRATCH/DPR-data/new-results/nq/single/ocoqa_t5_canard.json
-# HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python dense_retriever.py model_file=$SCRATCH/DPR-data/checkpoint/retriever/single/nq/bert-base-encoder.cp qa_dataset=ocoqa_t5_qrecc ctx_datatsets=[dpr_wiki] encoded_ctx_files=[\"$SCRATCH/DPR-data/data/retriever_results/nq/single/wikipedia_passages_*\"] out_file=$SCRATCH/DPR-data/new-results/nq/single/ocoqa_t5_qrecc.json
 
-HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python dense_retriever.py model_file=$SCRATCH/DPR-data/checkpoint/retriever/single/nq/bert-base-encoder.cp qa_dataset=ocoqa_t5_canard ctx_datatsets=[dpr_wiki_ocoqa] encoded_ctx_files=[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/wikipedia_passages_*\"] out_file=$SCRATCH/DPR-data/new-results/nq/single/ocoqa_t5_canard_wiki2.json
-HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python dense_retriever.py model_file=$SCRATCH/DPR-data/checkpoint/retriever/single/nq/bert-base-encoder.cp qa_dataset=ocoqa_t5_qrecc ctx_datatsets=[dpr_wiki_ocoqa] encoded_ctx_files=[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/wikipedia_passages_*\"] out_file=$SCRATCH/DPR-data/new-results/nq/single/ocoqa_t5_qrecc_wiki2.json
+dataset=rewrites_t5_qrecc
+qa_dataset="ocoqa_test_${dataset}"
+model_file=$SCRATCH"/DPR-data/new-checkpoints/ocoqa/${dataset}/retriever/final_checkpoint"
+ctx_dataset="[dpr_wiki_ocoqa]"
+encoded_ctx_files="[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/trained/${dataset}/wikipedia_passages_*\"]"
+experiment_id=dpr_retriever_inference_ocoqa_${dataset}_test
+results_file=$SCRATCH"/DPR-data/new-results/ocoqa/trained/${dataset}/retriever/results_test.json"
+
+HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+python dense_retriever.py \
+model_file=${model_file} \
+qa_dataset=${qa_dataset} \
+ctx_datatsets=${ctx_dataset} \
+encoded_ctx_files=${encoded_ctx_files} \
+out_file=${results_file}

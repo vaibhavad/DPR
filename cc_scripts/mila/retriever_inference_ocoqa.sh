@@ -1,56 +1,39 @@
-time=01:00:00
+time_dev=02:00:00
+time_train=02:00:00
 memory=250G
 
 export SCRATCH=/miniscratch/vaibhav.adlakha
 
-model_file=$SCRATCH"/DPR-data/checkpoint/retriever/single/nq/bert-base-encoder.cp"
 
-for qa_dataset in ocoqa_test_t5_qrecc ocoqa_test_original ocoqa_test_all_history
+for dataset in original all_history rewrites_t5_qrecc
 do
+    qa_dataset="ocoqa_test_${dataset}"
+    model_file=$SCRATCH"/DPR-data/new-checkpoints/ocoqa/${dataset}/retriever/final_checkpoint"
+    ctx_dataset="[dpr_wiki_ocoqa]"
+    encoded_ctx_files="[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/trained/${dataset}/wikipedia_passages_*\"]"
 
-    ctx_dataset="[dpr_wiki]"
-    encoded_ctx_files="[\"$SCRATCH/DPR-data/data/retriever_results/nq/single/wikipedia_passages_*\"]"
-
-    experiment_id=dpr_retriever_inference_${qa_dataset}_dpr_corpus
-    results_file=$SCRATCH"/DPR-data/new-results/ocoqa/inference_only/${qa_dataset}/dpr_corpus/retriever/results.json"
+    experiment_id=dpr_retriever_inference_ocoqa_${dataset}_test
+    results_file=$SCRATCH"/DPR-data/new-results/ocoqa/trained/${dataset}/retriever/results_test.json"
 
     if [ ! -f ${results_file} ]; then
         echo ${experiment_id}
-        sbatch --time=${time} --mem=${memory} -J ${experiment_id} --gres=gpu:4 \
+        sbatch --time=${time_dev} --mem=${memory} -J ${experiment_id} --gres=gpu:2 \
         --nodes=1 --cpus-per-task=40 \
         -o $SCRATCH"/DPR-data/new-results/logs/%x.%j.out" -e $SCRATCH"/DPR-data/new-results/logs/%x.%j.err" \
         _retriever_inference_ocoqa.sh \
         ${model_file} ${qa_dataset} ${ctx_dataset} ${encoded_ctx_files} ${results_file}
     fi
 
-    ctx_dataset="[dpr_wiki_ocoqa]"
-    encoded_ctx_files="[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/trained_on_nq/wikipedia_passages_*\"]"
-
-    experiment_id=dpr_retriever_inference_${qa_dataset}_ocoqa_corpus
-    results_file=$SCRATCH"/DPR-data/new-results/ocoqa/inference_only/${qa_dataset}/ocoqa_corpus/retriever/results.json"
+    qa_dataset="ocoqa_${dataset}"
+    results_file=$SCRATCH"/DPR-data/new-results/ocoqa/trained/${dataset}/retriever/results_train.json"
+    experiment_id=dpr_retriever_inference_ocoqa_${dataset}_train
 
     if [ ! -f ${results_file} ]; then
         echo ${experiment_id}
-        sbatch --time=${time} --mem=${memory} -J ${experiment_id} --gres=gpu:4 \
+        sbatch --time=${time_train} --mem=${memory} -J ${experiment_id} --gres=gpu:4 \
         --nodes=1 --cpus-per-task=40 \
         -o $SCRATCH"/DPR-data/new-results/logs/%x.%j.out" -e $SCRATCH"/DPR-data/new-results/logs/%x.%j.err" \
         _retriever_inference_ocoqa.sh \
         ${model_file} ${qa_dataset} ${ctx_dataset} ${encoded_ctx_files} ${results_file}
     fi
 done
-
-model_file=$SCRATCH"/DPR-data/new-checkpoints/ocoqa/retriever/dpr_biencoder.33"
-qa_dataset=ocoqa_test_t5_qrecc
-ctx_dataset="[dpr_wiki_ocoqa]"
-encoded_ctx_files="[\"$SCRATCH/DPR-data/new-results/retriever_results/ocoqa/t5_rewrites_qrecc_trained/wikipedia_passages_*\"]"
-experiment_id=dpr_retriever_inference_${qa_dataset}_ocoqa_corpus_trained
-results_file=$SCRATCH"/DPR-data/new-results/ocoqa/t5_rewrites_qrecc_trained/retriever/${qa_dataset}_results.json"
-
-if [ ! -f ${results_file} ]; then
-    echo ${experiment_id}
-    sbatch --time=${time} --mem=${memory} -J ${experiment_id} --gres=gpu:4 \
-    --nodes=1 --cpus-per-task=40 \
-    -o $SCRATCH"/DPR-data/new-results/logs/%x.%j.out" -e $SCRATCH"/DPR-data/new-results/logs/%x.%j.err" \
-    _retriever_inference_ocoqa.sh \
-    ${model_file} ${qa_dataset} ${ctx_dataset} ${encoded_ctx_files} ${results_file}
-fi
