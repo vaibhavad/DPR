@@ -1,3 +1,5 @@
 results/**
 dpr/downloads/**
 results_from_cluster/**
+rewrites/**
+data/**
