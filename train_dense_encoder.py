@@ -15,6 +15,7 @@ import math
 import os
 import random
 import sys
+import shutil
 import time
 from typing import Tuple
 
@@ -49,6 +50,9 @@ from dpr.utils.model_utils import (
     get_model_obj,
     load_states_from_checkpoint,
 )
+
+import wandb
+wandb.init(project="dpr-retriever", group='experiment-1')
 
 logger = logging.getLogger()
 setup_logger(logger)
@@ -88,6 +92,7 @@ class BiEncoderTrainer(object):
             cfg.fp16,
             cfg.fp16_opt_level,
         )
+        wandb.watch(model, log_freq=100)
         self.biencoder = model
         self.optimizer = optimizer
         self.tensorizer = tensorizer
@@ -209,6 +214,10 @@ class BiEncoderTrainer(object):
             logger.info(
                 "Training finished. Best validation checkpoint %s", self.best_cp_name
             )
+            shutil.copyfile(
+                self.best_cp_name,
+                os.path.join(cfg.output_dir, "final_checkpoint"),
+            )
 
     def validate_and_save(self, epoch: int, iteration: int, scheduler):
         cfg = self.cfg
@@ -304,6 +313,8 @@ class BiEncoderTrainer(object):
             total_samples,
             correct_ratio,
         )
+        wandb.log({"nll_validation_loss": total_loss})
+        wandb.log({"nll_validation_correct_ratio": correct_ratio})
         return total_loss
 
     def validate_average_rank(self) -> float:
@@ -457,6 +468,7 @@ class BiEncoderTrainer(object):
         logger.info(
             "Av.rank validation: average rank %s, total questions=%d", av_rank, q_num
         )
+        wandb.log({"av_rank": av_rank})
         return av_rank
 
     def _train_epoch(
@@ -529,6 +541,7 @@ class BiEncoderTrainer(object):
                 rep_positions=rep_positions,
                 loss_scale=loss_scale,
             )
+            wandb.log({"loss": loss})
 
             epoch_correct_predictions += correct_cnt
             epoch_loss += loss.item()
@@ -574,6 +587,7 @@ class BiEncoderTrainer(object):
                     rolling_loss_step,
                     latest_rolling_train_av_loss,
                 )
+                wandb.log({"latest_rolling_train_av_loss": latest_rolling_train_av_loss})
                 rolling_train_loss = 0.0
 
             if data_iteration % eval_step == 0:
@@ -593,8 +607,10 @@ class BiEncoderTrainer(object):
         self.validate_and_save(epoch, data_iteration, scheduler)
 
         epoch_loss = (epoch_loss / epoch_batches) if epoch_batches > 0 else 0
+        wandb.log({"epoch_loss": epoch_loss})
         logger.info("Av Loss per epoch=%f", epoch_loss)
         logger.info("epoch total correct predictions=%d", epoch_correct_predictions)
+        wandb.log({"epoch_correct_predictions": epoch_correct_predictions})
 
     def _save_checkpoint(self, scheduler, epoch: int, offset: int) -> str:
         cfg = self.cfg
@@ -805,6 +821,7 @@ def main(cfg: DictConfig):
         logger.info("CFG (after gpu  configuration):")
         logger.info("%s", OmegaConf.to_yaml(cfg))
 
+    wandb.config.update(cfg)
     trainer = BiEncoderTrainer(cfg)
 
     if cfg.train_datasets and len(cfg.train_datasets) > 0:
