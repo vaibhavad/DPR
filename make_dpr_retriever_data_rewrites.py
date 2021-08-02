@@ -2,6 +2,8 @@ import json
 from tqdm import tqdm
 from datetime import datetime, timedelta
 from glob import glob
+import pickle
+import os
 
 WIKI_JSONL_LOCATION = '/scratch/vaibhav/full_wiki_segments.jsonl'
 CONV_DIR = '/scratch/vaibhav/final_final_conversations'
@@ -20,6 +22,8 @@ GOLD_PASSAGE_INFO_FILE = ['/scratch/vaibhav/DPR-data/data/gold_passages_info/oco
 DEV_IDS_FILE = '/scratch/vaibhav/dev_list.txt'
 TEST_IDS_FILE = '/scratch/vaibhav/test_list.txt'
 MIN_CONV_LENGTH = 10
+CONVS_PICKLE_FILE = '/scratch/vaibhav/convs.pkl'
+DATA_PICKLE_FILE = '/scratch/vaibhav/all_data'
 
 all_segments = {}
 i = 1
@@ -27,10 +31,13 @@ with open(WIKI_JSONL_LOCATION, 'r') as f:
     for line in tqdm(f):
         data = json.loads(line.strip())
         if data["title"] not in all_segments:
-            all_segments[data["title"]] = []
+            all_segments[data["title"]] = {}
+        if data["sub_title"] not in all_segments[data["title"]]:
+            all_segments[data["title"]][data["sub_title"]] = []
         data["id"] = i
+        all_segments[data["title"]][data["sub_title"]].append(data)
         i += 1
-        all_segments[data["title"]].append(data)
+        # all_segments[data["title"]].append(data)
 
 convs = [[], [], []]
 files = sorted(glob(CONV_DIR + '/*'))
@@ -45,18 +52,26 @@ with open(TEST_IDS_FILE) as f:
     for line in f:
         test_ids.append(line.strip())
 turns = 0
-for file in files:
-    with open(file, 'r') as f:
-        conv = json.load(f)
-        if len(conv["turns"]) >= MIN_CONV_LENGTH:
-            turns += len(conv['turns'])
-            if conv['id'] in dev_ids:
-                convs[1].append(conv)
-            elif conv['id'] in test_ids:
-                convs[2].append(conv)
-            else:
-                convs[0].append(conv)
-print(turns/2)
+
+if not os.path.exists(CONVS_PICKLE_FILE):
+    for file in tqdm(files):
+        with open(file, 'r') as f:
+            conv = json.load(f)
+            if len(conv["turns"]) >= MIN_CONV_LENGTH:
+                turns += len(conv['turns'])
+                if conv['id'] in dev_ids:
+                    convs[1].append(conv)
+                elif conv['id'] in test_ids:
+                    convs[2].append(conv)
+                else:
+                    convs[0].append(conv)
+
+    with open(CONVS_PICKLE_FILE, 'wb') as f:
+        pickle.dump(convs, f)
+else:
+    print('Loading conversations from pickle file ....')
+    with open(CONVS_PICKLE_FILE, 'rb') as f:
+        convs = pickle.load(f)
 
 for idx in [0, 1, 2]:
     # convs = []
@@ -75,43 +90,55 @@ for idx in [0, 1, 2]:
     #         if idx == 1 and condition:
     #             convs.append(conv)
 
-    all_ques = []
-    all_ans = []
-    all_rewrites = []
+    if not os.path.exists(DATA_PICKLE_FILE + '-' + str(idx) + '.pkl'):
 
-    for conv in tqdm(convs[idx]):
-        ques = []
-        ans = []
-        rewrites = []
-        for i, turn in enumerate(conv["turns"]):
-            if i % 2 == 0:
-                ques.append({"id": conv["id"],
-                             "text": turn["text"],
-                             "passage_title": turn["passage_title"],
-                             "passage_sub_title": turn["passage_sub_title"]})
-            else:
-                ans.append(turn)
-        with open(REWRITES_DIR[idx] + '/' + conv["id"], 'r') as f:
-            for line in f:
-                rewrites.append(line.lower().strip('?').strip())
-        if len(rewrites) != len(ans) and idx == 1:
-            ans.append({"text": "UNANSWERABLE",
-                        "passage_title": ques[-1]["passage_title"],
-                        "passage_sub_title": ques[-1]["passage_sub_title"]})
-        # if idx == 0:
-        #     ques = ques[:len(ans)]
-        #     rewrites = rewrites[:len(ans)]
-        assert len(ques) == len(ans) == len(rewrites)
-        all_ques.extend(ques)
-        all_ans.extend(ans)
-        all_rewrites.extend(rewrites)
+        all_ques = []
+        all_ans = []
+        all_rewrites = []
 
-    assert len(all_ques) == len(all_ans) == len(all_rewrites)
-    print(len(all_ques))
+        for conv in tqdm(convs[idx]):
+            ques = []
+            ans = []
+            rewrites = []
+            for i, turn in enumerate(conv["turns"]):
+                if i % 2 == 0:
+                    ques.append({"id": conv["id"],
+                                "text": turn["text"],
+                                "passage_title": turn["passage_title"],
+                                "passage_sub_title": turn["passage_sub_title"]})
+                else:
+                    ans.append(turn)
+            with open(REWRITES_DIR[idx] + '/' + conv["id"], 'r') as f:
+                for line in f:
+                    rewrites.append(line.lower().strip('?').strip())
+            if len(rewrites) != len(ans):
+                ans.append({"text": "UNANSWERABLE",
+                            "passage_title": ques[-1]["passage_title"],
+                            "passage_sub_title": ques[-1]["passage_sub_title"]})
+            # if idx == 0:
+            #     ques = ques[:len(ans)]
+            #     rewrites = rewrites[:len(ans)]
+            if not len(ques) == len(ans) == len(rewrites):
+                print(len(ques), len(ans), len(rewrites))
+                assert False
+            all_ques.extend(ques)
+            all_ans.extend(ans)
+            all_rewrites.extend(rewrites)
+
+        assert len(all_ques) == len(all_ans) == len(all_rewrites)
+        with open(DATA_PICKLE_FILE + '-' + str(idx) + '.pkl', 'wb') as f:
+            pickle.dump([all_ques, all_ans, all_rewrites], f)
+    else:
+        print('Loading data from pickle file ....')
+        with open(DATA_PICKLE_FILE + '-' + str(idx) + '.pkl', 'rb') as f:
+            all_ques, all_ans, all_rewrites = pickle.load(f)
+
 
     j = 0
     training_data = []
     gold_passages_info = []
+    actual_segment = 0
+    heuristic_segment = 0
     for i, rewrite in enumerate(tqdm(all_rewrites)):
         ans = all_ans[i]
         ques = all_ques[i]
@@ -127,27 +154,50 @@ for idx in [0, 1, 2]:
                 "question": rewrite,
                 "answers": [ans["text"]],
                 "positive_ctxs": []}
-        assert len(ques["passage_title"]) > 0
-        assert len(ques["passage_sub_title"]) > 0
-        passage_title = ans["passage_title"] if len(ans["passage_title"]) > 0 else ques["passage_title"]
-        passage_sub_title = ans["passage_sub_title"] if len(ans["passage_sub_title"]) > 0 else ques["passage_sub_title"]
+        # assert len(ques["passage_title"]) > 0
+        # assert len(ques["passage_sub_title"]) > 0
+        conv_id = ques["id"]
+        if len(ans["passage_title"]) == 0 or len(ans["passage_sub_title"]) == 0:
+            for k in range(i-1, 0, -1):
+                if len(all_ans[k]["passage_title"]) > 0 and len(all_ans[k]["passage_sub_title"]) > 0 and all_ques[k]["id"] == conv_id:
+                    passage_title = all_ans[k]["passage_title"]
+                    passage_sub_title = all_ans[k]["passage_sub_title"]
+                    break
+                if len(all_ques[k]["passage_title"]) > 0 and len(all_ques[k]["passage_sub_title"]) > 0 and all_ques[k]["id"] == conv_id:
+                    passage_title = all_ques[k]["passage_title"]
+                    passage_sub_title = all_ques[k]["passage_sub_title"]
+                    break
+        else:
+            passage_title = ans["passage_title"]
+            passage_sub_title = ans["passage_sub_title"]
+            
 
+        assert passage_title != ""
+        assert passage_sub_title != ""
+        # passage_title = passage_title.strip('.')
+        passage_sub_title = passage_sub_title.strip('.')
         assert passage_title in all_segments
         assert passage_sub_title in all_segments[passage_title]
-
-        if len(ans["evidence"]) > 0:
-            segment = all_segments[passage_title][passage_sub_title]
-            assert ans["evidence"] in segment
-        # for segment in all_segments[ans["passage_title"]]:
-        #     if ans["evidence"] in segment["contents"]:
-            # dpr_segment = {"title": segment["title"],
-            #                 "text": segment["contents"],
-            #                 "score": 1000,
-            #                 "title_score": 1,
-            #                 "passage_id": str(segment["id"])}
-            # data["positive_ctxs"].append(dpr_segment)
-        else:
-            segment = all_segments[ans["passage_title"]][0]
+        segment = None
+        if "evidence" in ans and len(ans["evidence"]) > 0:
+            for ans_segment in all_segments[passage_title][passage_sub_title]:
+                if ans["evidence"] in ans_segment["contents"]:
+                    segment = ans_segment
+                    actual_segment += 1
+                    break
+            # assert ans["evidence"] in segment["contents"]
+            # for segment in all_segments[ans["passage_title"]]:
+            #     if ans["evidence"] in segment["contents"]:
+            #         dpr_segment = {"title": segment["title"],
+            #                         "text": segment["contents"],
+            #                         "score": 1000,
+            #                         "title_score": 1,
+            #                         "passage_id": str(segment["id"])}
+            #         data["positive_ctxs"].append(dpr_segment)
+            #         break
+        if segment is None:
+            heuristic_segment += 1
+            segment = all_segments[passage_title][passage_sub_title][0]
         dpr_segment = {"title": segment["title"],
                         "text": segment["contents"],
                         "score": 1000,
@@ -168,13 +218,15 @@ for idx in [0, 1, 2]:
         obj["context"] = segment["contents"]
         gold_passages_info.append(obj)
 
+    print("actual_segment", actual_segment)
+    print("heuristic_segment", heuristic_segment)
     with open(OUTPUT_FILE[idx], "w") as writer:
         writer.write(json.dumps(training_data, indent=4) + "\n")
     print(j)
     print(f"Saved data to {OUTPUT_FILE[idx]}")
 
     with open(GOLD_PASSAGE_INFO_FILE[idx], 'w') as f:
-    json.dump(fp=f, obj={"data": gold_passages_info})
+        json.dump(fp=f, obj={"data": gold_passages_info})
 
     print(f"Saved data to {GOLD_PASSAGE_INFO_FILE[idx]}")
 

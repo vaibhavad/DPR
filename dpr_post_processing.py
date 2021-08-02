@@ -1,10 +1,8 @@
 import json
 from glob import glob
 
-CONV_DIR = '/Users/vaibhav/Coqoa/final_conversations'
-
-REWRITES_DIR = '/Users/vaibhav/canard/rewrites/t5/qrecc_model'
-REWRITES_DPR_INPUT_FILE = '/Users/vaibhav/canard/data/ocoqa_test_t5_qrecc.csv'
+REWRITES_DIR = 'rewrites/test/ocoqa/t5/qrecc_model'
+REWRITES_DPR_INPUT_FILE = 'data/retriever/qas/ocoqa-rewrites-t5-qrecc-test.csv'
 
 # REWRITES_DIR = '/Users/vaibhav/canard/rewrites/all_history'
 # REWRITES_DPR_INPUT_FILE = '/Users/vaibhav/canard/data/ocoqa_test_all_history.csv'
@@ -15,14 +13,14 @@ REWRITES_DPR_INPUT_FILE = '/Users/vaibhav/canard/data/ocoqa_test_t5_qrecc.csv'
 # DPR_RETRIEVER_RESULTS = 'results_from_cluster/ocoqa/inference_only/ocoqa_test_original/dpr_corpus/retriever/results.json'
 # DPR_READER_RESULTS = 'results_from_cluster/ocoqa/inference_only/ocoqa_test_original/dpr_corpus/reader/results.json'
 
-DPR_RETRIEVER_RESULTS = 'results_from_cluster/ocoqa/t5_rewrites_qrecc_trained/retriever/ocoqa_test_t5_qrecc_results.json'
-DPR_READER_RESULTS = 'results_from_cluster/ocoqa/t5_rewrites_qrecc_trained/reader/ocoqa_test_t5_qrecc_results.json'
+DPR_RETRIEVER_RESULTS = 'results_from_cluster/ocoqa/trained/rewrites_t5_qrecc/retriever/results_test.json'
+DPR_READER_RESULTS = 'results_from_cluster/ocoqa/trained/rewrites_t5_qrecc/reader/results_test.json'
 
 # DPR_OUTPUT_RETRIEVER_DIR = 'results/ocoqa/inference_only/ocoqa_test_original/dpr_corpus/retriever/'
 # DPR_OUTPUT_READER_DIR = 'results/ocoqa/inference_only/ocoqa_test_original/dpr_corpus/reader/'
 
-DPR_OUTPUT_RETRIEVER_DIR = 'results/ocoqa/t5_rewrites_qrecc_trained/retriever/'
-DPR_OUTPUT_READER_DIR = 'results/ocoqa/t5_rewrites_qrecc_trained/reader/'
+DPR_OUTPUT_RETRIEVER_DIR = 'results/ocoqa/trained/rewrites_t5_qrecc/retriever/'
+DPR_OUTPUT_READER_DIR = 'results/ocoqa/trained/rewrites_t5_qrecc/reader/'
 
 canard_count = 0
 canard_rewrites =  {}
@@ -41,13 +39,14 @@ ocoqa_count = 0
 with open(REWRITES_DPR_INPUT_FILE, 'r') as f:
     for line in f:
         ocoqa_count += 1
-
+print(canard_count)
+print(ocoqa_count)
 assert canard_count == ocoqa_count
 
 # Retriever results
 with open(DPR_RETRIEVER_RESULTS, 'r') as f:
     retriever_results = json.load(f)
-
+print(len(retriever_results))
 assert len(retriever_results) == canard_count
 
 # retriever_results_map = {}
@@ -78,7 +77,7 @@ for file in files:
 # Reader results
 with open(DPR_READER_RESULTS, 'r') as f:
     reader_results = json.load(f)
-
+print(len(reader_results))
 assert len(reader_results) == canard_count
 
 reader_results_map = {}
